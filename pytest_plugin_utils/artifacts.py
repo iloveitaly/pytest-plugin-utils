@@ -56,7 +56,9 @@ def get_artifact_dir_option() -> str:
     Returns:
         The pytest option name used for the artifact output directory.
     """
-    assert _artifact_dir_option, "call set_artifact_dir_option() before using get_artifact_dir_option()"
+    assert _artifact_dir_option, (
+        "call set_artifact_dir_option() before using get_artifact_dir_option()"
+    )
     return _artifact_dir_option
 
 
@@ -99,7 +101,9 @@ def get_artifact_dir(item: pytest.Item) -> Path:
         A pathlib.Path object pointing to the specific test's artifact directory.
         The directory and its parents are created if they do not exist.
     """
-    assert _artifact_dir_option, "call set_artifact_dir_option() before using get_artifact_dir()"
+    assert _artifact_dir_option, (
+        "call set_artifact_dir_option() before using get_artifact_dir()"
+    )
     output_path = get_pytest_option(item.config, _artifact_dir_option, type_hint=Path)
     assert output_path
     output_path.mkdir(exist_ok=True)
@@ -107,6 +111,3 @@ def get_artifact_dir(item: pytest.Item) -> Path:
     per_test_dir = output_path / sanitize_for_artifacts(item.nodeid)
     per_test_dir.mkdir(parents=True, exist_ok=True)
     return per_test_dir
-
-
-__all__ = ["set_artifact_dir_option", "get_artifact_dir_option", "sanitize_for_artifacts", "get_artifact_dir"]

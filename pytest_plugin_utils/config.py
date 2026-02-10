@@ -242,6 +242,3 @@ def get_pytest_option[T](
             return val
 
     return val
-
-
-__all__ = ["OptionDef", "REGISTRY", "set_pytest_option", "register_pytest_options", "get_pytest_option"]
