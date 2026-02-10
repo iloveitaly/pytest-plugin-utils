@@ -161,8 +161,11 @@ def _smart_cast[T](value: t.Any, type_hint: type[T] | None) -> T | t.Any:
         return value.lower() in ("true", "1", "yes", "on")
 
     if origin is list and isinstance(value, str):
+        # list("foo") produces ['f', 'o', 'o'], so handle string-to-list specially
+        # by splitting on newlines (CLI args or raw strings from config)
         return [v.strip() for v in value.splitlines() if v.strip()]
 
+    # Generic fallback: call type_hint(value) as constructor
     try:
         if origin is not None:
             return t.cast(type, origin)(value)
