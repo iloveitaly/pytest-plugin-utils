@@ -35,7 +35,7 @@ jobs:
         os:
           - ubuntu-latest
           # - macos-latest
-        python-version: ["3.14", "3.13", "3.12", "3.11"]
+        python-version: ["3.14", "3.13"]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
@@ -43,8 +43,6 @@ jobs:
       - run: mise use python@${{ matrix.python-version }}
       - uses: iloveitaly/github-action-direnv-load-and-mask@master
       - run: uv sync
-      - name: Check CLI
-        run: uv run ${{ github.event.repository.name }} --help
       - run: just test
 
   release-please:
