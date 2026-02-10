@@ -159,6 +159,38 @@ def test_smart_cast_int_from_str_invalid():
         _smart_cast("not_a_number", int)
 
 
+def test_smart_cast_path_from_str():
+    from pathlib import Path
+
+    result = _smart_cast("/tmp/test", Path)
+    assert isinstance(result, Path)
+    assert str(result) == "/tmp/test"
+
+
+def test_smart_cast_path_already_path():
+    from pathlib import Path
+
+    original = Path("/tmp/test")
+    result = _smart_cast(original, Path)
+    assert result is original
+
+
+def test_smart_cast_float_from_str():
+    assert _smart_cast("3.14", float) == 3.14
+
+
+def test_smart_cast_float_already_float():
+    assert _smart_cast(3.14, float) == 3.14
+
+
+def test_smart_cast_purepath_from_str():
+    from pathlib import PurePosixPath
+
+    result = _smart_cast("/tmp/test", PurePosixPath)
+    assert isinstance(result, PurePosixPath)
+    assert str(result) == "/tmp/test"
+
+
 def test_smart_cast_list_from_str():
     result = _smart_cast("line1\nline2\n\nline3", list[str])
     assert result == ["line1", "line2", "line3"]

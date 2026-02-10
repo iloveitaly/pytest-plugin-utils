@@ -160,26 +160,17 @@ def _smart_cast[T](value: t.Any, type_hint: type[T] | None) -> T | t.Any:
     if type_hint is bool and isinstance(value, str):
         return value.lower() in ("true", "1", "yes", "on")
 
-    if type_hint is int and isinstance(value, str):
-        try:
-            return int(value)
-        except ValueError:
-            pass  # Let it fail downstream or raise TypeError below
-
     if origin is list and isinstance(value, str):
-        # Fallback for CLI list parsing (comma or newline separated?)
-        # For 'linelist' INI types, pytest handles newlines.
-        # For CLI, let's assume we might get a single string that needs splitting?
-        # Or maybe we just return it wrapped in a list?
-        # The user instructions suggested:
-        # "return [v.strip() for v in value.splitlines() if v.strip()]"
         return [v.strip() for v in value.splitlines() if v.strip()]
 
-    # If we can't cast it safely, return as is (or raise if strictness required)
-    # The plan said "Raise TypeError if casting fails or type is unhandled"
-    # but strictly raising might break existing lenient behaviors.
-    # We'll try to follow the plan's strictness for now.
-    raise TypeError(f"Cannot cast value of type {type(value)} to {type_hint}")
+    try:
+        if origin is not None:
+            return t.cast(type, origin)(value)
+        return t.cast(type, type_hint)(value)
+    except (TypeError, ValueError) as e:
+        raise TypeError(
+            f"Cannot cast value of type {type(value)} to {type_hint}"
+        ) from e
 
 
 def get_pytest_option[T](
