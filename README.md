@@ -3,7 +3,11 @@
 ![GitHub CI Status](https://github.com/iloveitaly/pytest-plugin-utils/actions/workflows/build_and_publish.yml/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-# pytest-plugin-utils
+# Reusable pytest Plugin Utilities
+
+Building pytest plugins means dealing with the same problems repeatedly: managing configuration options with proper precedence (CLI vs INI vs defaults), creating per-test artifact directories, and sanitizing test names for filesystem paths. This package extracts those common patterns into reusable utilities.
+
+I created this after extracting the config and path handling logic from `pytest-playwright-artifacts`. Rather than reinvent option handling in every plugin, you can use these utilities to get consistent behavior across pytest plugins.
 
 ## Installation
 
@@ -11,6 +15,62 @@
 uv add pytest-plugin-utils
 ```
 
+## Usage
+
+### Configuration Options
+
+Register pytest options with automatic precedence handling (runtime > CLI > INI > defaults) and type inference:
+
+```python
+from pytest_plugin_utils import set_pytest_option, register_pytest_options, get_pytest_option
+
+def pytest_addoption(parser):
+    # Define your options
+    set_pytest_option(
+        "api_url",
+        default="http://localhost:3000",
+        help="API base URL",
+        available="all",  # Expose via CLI and INI
+        type_hint=str,
+    )
+
+    # Register them with pytest
+    register_pytest_options(parser)
+
+def pytest_configure(config):
+    # Retrieve with automatic type casting
+    api_url = get_pytest_option(config, "api_url", type_hint=str)
+```
+
+### Artifact Directory Management
+
+Create per-test artifact directories with sanitized names:
+
+```python
+from pytest_plugin_utils import set_artifact_dir_option, get_artifact_dir
+
+def pytest_configure(config):
+    # Configure which option name to use
+    set_artifact_dir_option("my_plugin_output")
+
+def pytest_runtest_setup(item):
+    # Get a clean directory for this specific test
+    artifact_dir = get_artifact_dir(item)
+    # Returns: /output/test-file-py-test-name-param/
+```
+
+## Features
+
+* Centralized option registry with runtime, CLI, and INI support
+* Automatic INI type inference from Python type hints (bool, str, list[str], list[Path])
+* Smart value casting with fallback precedence handling
+* Filesystem-safe test name sanitization for artifact paths
+* Per-test artifact directory creation and resolution
+* Type-safe configuration retrieval with warnings on mismatches
+
+## [MIT License](LICENSE.md)
+
 ---
 
 *This project was created from [iloveitaly/python-package-template](https://github.com/iloveitaly/python-package-template)*
+

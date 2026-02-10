@@ -1,8 +1,8 @@
 [project]
 name = "pytest-plugin-utils"
 version = "0.1.0"
-description = ""
-keywords = []
+description = "Reusable configuration and artifact utilities for building pytest plugins"
+keywords = ["pytest", "plugin", "testing", "utilities"]
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = ["structlog-config>=0.10.0"]
