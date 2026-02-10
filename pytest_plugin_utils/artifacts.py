@@ -14,10 +14,10 @@ import pytest
 
 from .config import get_pytest_option
 
-_artifact_dir_option: str | None = None
+_artifact_dir_options: dict[str, str] = {}
 
 
-def set_artifact_dir_option(option_name: str) -> None:
+def set_artifact_dir_option(namespace: str, option_name: str) -> None:
     """
     Set the pytest option name used for the artifact output directory.
 
@@ -33,6 +33,7 @@ def set_artifact_dir_option(option_name: str) -> None:
         def pytest_configure(config):
             # Register your custom option
             set_pytest_option(
+                __package__,
                 "my_artifacts_output",
                 default="my-test-results",
                 help="Directory for test artifacts",
@@ -40,26 +41,29 @@ def set_artifact_dir_option(option_name: str) -> None:
                 type_hint=str,
             )
             # Configure paths module to use it
-            set_artifact_dir_option("my_artifacts_output")
+            set_artifact_dir_option(__package__, "my_artifacts_output")
 
     Args:
+        namespace: Unique namespace for this plugin (typically __package__).
         option_name: The pytest option name (without '--' prefix, with underscores).
     """
-    global _artifact_dir_option
-    _artifact_dir_option = option_name
+    _artifact_dir_options[namespace] = option_name
 
 
-def get_artifact_dir_option() -> str:
+def get_artifact_dir_option(namespace: str) -> str:
     """
     Get the currently configured artifact directory option name.
+
+    Args:
+        namespace: Unique namespace for this plugin (typically __package__).
 
     Returns:
         The pytest option name used for the artifact output directory.
     """
-    assert _artifact_dir_option, (
-        "call set_artifact_dir_option() before using get_artifact_dir_option()"
+    assert namespace in _artifact_dir_options, (
+        f"call set_artifact_dir_option({namespace!r}, ...) before using get_artifact_dir_option()"
     )
-    return _artifact_dir_option
+    return _artifact_dir_options[namespace]
 
 
 def sanitize_for_artifacts(text: str) -> str:
@@ -86,7 +90,7 @@ def sanitize_for_artifacts(text: str) -> str:
     return sanitized or "unknown-test"
 
 
-def get_artifact_dir(item: pytest.Item) -> Path:
+def get_artifact_dir(namespace: str, item: pytest.Item) -> Path:
     """
     Get or create the artifact directory for a specific test item.
 
@@ -95,16 +99,18 @@ def get_artifact_dir(item: pytest.Item) -> Path:
     a subdirectory for the specific test item using its sanitized nodeid.
 
     Args:
+        namespace: Unique namespace for this plugin (typically __package__).
         item: The pytest.Item (test case) for which to get the directory.
 
     Returns:
         A pathlib.Path object pointing to the specific test's artifact directory.
         The directory and its parents are created if they do not exist.
     """
-    assert _artifact_dir_option, (
-        "call set_artifact_dir_option() before using get_artifact_dir()"
+    assert namespace in _artifact_dir_options, (
+        f"call set_artifact_dir_option({namespace!r}, ...) before using get_artifact_dir()"
     )
-    output_path = get_pytest_option(item.config, _artifact_dir_option, type_hint=Path)
+    option_name = _artifact_dir_options[namespace]
+    output_path = get_pytest_option(namespace, item.config, option_name, type_hint=Path)
     assert output_path
     output_path.mkdir(exist_ok=True)
 

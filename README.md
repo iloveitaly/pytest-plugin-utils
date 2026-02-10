@@ -25,8 +25,9 @@ Register pytest options with automatic precedence handling (runtime > CLI > INI 
 from pytest_plugin_utils import set_pytest_option, register_pytest_options, get_pytest_option
 
 def pytest_addoption(parser):
-    # Define your options
+    # Define your options (use __package__ for namespace)
     set_pytest_option(
+        __package__,
         "api_url",
         default="http://localhost:3000",
         help="API base URL",
@@ -35,11 +36,11 @@ def pytest_addoption(parser):
     )
 
     # Register them with pytest
-    register_pytest_options(parser)
+    register_pytest_options(__package__, parser)
 
 def pytest_configure(config):
     # Retrieve with automatic type casting
-    api_url = get_pytest_option(config, "api_url", type_hint=str)
+    api_url = get_pytest_option(__package__, config, "api_url", type_hint=str)
 ```
 
 ### Artifact Directory Management
@@ -50,12 +51,12 @@ Create per-test artifact directories with sanitized names:
 from pytest_plugin_utils import set_artifact_dir_option, get_artifact_dir
 
 def pytest_configure(config):
-    # Configure which option name to use
-    set_artifact_dir_option("my_plugin_output")
+    # Configure which option name to use (use __package__ for namespace)
+    set_artifact_dir_option(__package__, "my_plugin_output")
 
 def pytest_runtest_setup(item):
     # Get a clean directory for this specific test
-    artifact_dir = get_artifact_dir(item)
+    artifact_dir = get_artifact_dir(__package__, item)
     # Returns: /output/test-file-py-test-name-param/
 ```
 

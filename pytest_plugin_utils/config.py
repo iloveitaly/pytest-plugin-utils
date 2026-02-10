@@ -36,8 +36,8 @@ class OptionDef:
     )
 
 
-REGISTRY: list[OptionDef] = []
-"configuration options this plugin wants to expose to pytest"
+REGISTRY: dict[str, list[OptionDef]] = {}
+"configuration options this plugin wants to expose to pytest, keyed by namespace"
 
 
 def _infer_ini_type(
@@ -77,9 +77,10 @@ def _infer_ini_type(
 
 
 def set_pytest_option(
+    namespace: str,
     name: str,
-    default: t.Any = None,
     *,
+    default: t.Any = None,
     help: str = "",
     available: t.Literal["all", "ini", "cli_option", None] = None,
     type_hint: t.Any | None = None,
@@ -91,6 +92,7 @@ def set_pytest_option(
     configuration (hook_configure).
 
     Args:
+        namespace: Unique namespace for this plugin (typically __package__).
         name: The key name (e.g. "api_url"). Use underscores.
         default: The fallback value if not provided via CLI or INI.
         help: Help text for the CLI/INI description.
@@ -103,7 +105,9 @@ def set_pytest_option(
                    validation and INI type inference.
     """
     ini_type = _infer_ini_type(type_hint)
-    REGISTRY.append(
+    if namespace not in REGISTRY:
+        REGISTRY[namespace] = []
+    REGISTRY[namespace].append(
         OptionDef(
             name=name,
             default=default,
@@ -115,11 +119,15 @@ def set_pytest_option(
     )
 
 
-def register_pytest_options(parser: Parser) -> None:
+def register_pytest_options(namespace: str, parser: Parser) -> None:
     """
     Must be called within `pytest_addoption` to register CLI/INI flags.
+
+    Args:
+        namespace: Unique namespace for this plugin (typically __package__).
+        parser: The pytest parser to register options with.
     """
-    for opt in REGISTRY:
+    for opt in REGISTRY.get(namespace, []):
         help_text = opt.help_text
         if opt.default is not None:
             help_text = f"{opt.help_text} (default: {opt.default})"
@@ -191,7 +199,7 @@ def _smart_cast[T](value: t.Any, type_hint: type[T] | None) -> T | t.Any:
 
 
 def get_pytest_option[T](
-    config: Config, key: str, *, type_hint: type[T] | None = None
+    namespace: str, config: Config, key: str, *, type_hint: type[T] | None = None
 ) -> T | t.Any | None:
     """
     Retrieve a configuration value from runtime overrides, CLI, or INI files.
@@ -202,6 +210,7 @@ def get_pytest_option[T](
     3. Configuration files (pytest.ini, pyproject.toml)
 
     Args:
+            namespace: Unique namespace for this plugin (typically __package__).
             config: The pytest Config object.
             key: The option name (use underscores).
             type_hint: Optional expected type for validation and smart casting.
@@ -209,10 +218,13 @@ def get_pytest_option[T](
     Returns:
             The resolved value, optionally casted. Returns None if not found.
     """
-    log.debug("getting pytest option", key=key, type_hint=type_hint)
+    log.debug("getting pytest option", namespace=namespace, key=key, type_hint=type_hint)
 
     normalized_key = key.replace("-", "_")
-    opt = next((entry for entry in REGISTRY if entry.name == normalized_key), None)
+    opt = next(
+        (entry for entry in REGISTRY.get(namespace, []) if entry.name == normalized_key),
+        None,
+    )
 
     # Validation
     if type_hint is not None and opt is not None and opt.type_hint is not None:

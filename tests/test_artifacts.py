@@ -13,14 +13,14 @@ from pytest_plugin_utils.artifacts import (
 
 
 def test_set_and_get_artifact_dir_option():
-    set_artifact_dir_option("custom_option_name")
-    assert get_artifact_dir_option() == "custom_option_name"
+    set_artifact_dir_option("test_ns", "custom_option_name")
+    assert get_artifact_dir_option("test_ns") == "custom_option_name"
 
 
 def test_get_artifact_dir_option_unset():
-    with patch("pytest_plugin_utils.artifacts._artifact_dir_option", None):
+    with patch("pytest_plugin_utils.artifacts._artifact_dir_options", {}):
         with pytest.raises(AssertionError, match="call set_artifact_dir_option"):
-            get_artifact_dir_option()
+            get_artifact_dir_option("test_ns")
 
 
 def test_sanitize_for_artifacts():
@@ -50,12 +50,12 @@ def test_get_artifact_dir(tmp_path):
 
     output_dir = tmp_path / "test-output"
 
-    set_artifact_dir_option("test_option")
+    set_artifact_dir_option("test_ns", "test_option")
 
     with patch(
         "pytest_plugin_utils.artifacts.get_pytest_option", return_value=output_dir
     ):
-        result = get_artifact_dir(mock_item)
+        result = get_artifact_dir("test_ns", mock_item)
 
         expected = output_dir / "test-module-py-test-function"
         assert result == expected
@@ -66,6 +66,15 @@ def test_get_artifact_dir(tmp_path):
 def test_get_artifact_dir_unset_option():
     mock_item = Mock()
 
-    with patch("pytest_plugin_utils.artifacts._artifact_dir_option", None):
+    with patch("pytest_plugin_utils.artifacts._artifact_dir_options", {}):
         with pytest.raises(AssertionError, match="call set_artifact_dir_option"):
-            get_artifact_dir(mock_item)
+            get_artifact_dir("test_ns", mock_item)
+
+
+def test_namespace_isolation():
+    """Test that artifact options in different namespaces don't interfere with each other."""
+    set_artifact_dir_option("namespace_a", "option_a")
+    set_artifact_dir_option("namespace_b", "option_b")
+
+    assert get_artifact_dir_option("namespace_a") == "option_a"
+    assert get_artifact_dir_option("namespace_b") == "option_b"
