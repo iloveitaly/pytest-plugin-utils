@@ -71,7 +71,11 @@ def test_register_pytest_options_cli_only():
     mock_parser = Mock()
     with patch("pytest_plugin_utils.config.REGISTRY", {}):
         set_pytest_option(
-            "test_ns", "cli_option", default="default", help="CLI only", available="cli_option"
+            "test_ns",
+            "cli_option",
+            default="default",
+            help="CLI only",
+            available="cli_option",
         )
 
         register_pytest_options("test_ns", mock_parser)

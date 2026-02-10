@@ -112,7 +112,7 @@ def get_artifact_dir(namespace: str, item: pytest.Item) -> Path:
     option_name = _artifact_dir_options[namespace]
     output_path = get_pytest_option(namespace, item.config, option_name, type_hint=Path)
     assert output_path
-    output_path.mkdir(exist_ok=True)
+    output_path.mkdir(parents=True, exist_ok=True)
 
     per_test_dir = output_path / sanitize_for_artifacts(item.nodeid)
     per_test_dir.mkdir(parents=True, exist_ok=True)

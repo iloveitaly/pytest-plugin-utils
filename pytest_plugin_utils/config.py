@@ -218,11 +218,17 @@ def get_pytest_option[T](
     Returns:
             The resolved value, optionally casted. Returns None if not found.
     """
-    log.debug("getting pytest option", namespace=namespace, key=key, type_hint=type_hint)
+    log.debug(
+        "getting pytest option", namespace=namespace, key=key, type_hint=type_hint
+    )
 
     normalized_key = key.replace("-", "_")
     opt = next(
-        (entry for entry in REGISTRY.get(namespace, []) if entry.name == normalized_key),
+        (
+            entry
+            for entry in REGISTRY.get(namespace, [])
+            if entry.name == normalized_key
+        ),
         None,
     )
 
