@@ -19,7 +19,9 @@ uv add pytest-plugin-utils
 
 ### Configuration Options
 
-Register pytest options with automatic precedence handling (runtime > CLI > INI > defaults) and type inference:
+Register pytest options with automatic precedence handling (runtime > CLI > INI > defaults) and type inference.
+
+**For Plugin Authors:**
 
 ```python
 from pytest_plugin_utils import set_pytest_option, register_pytest_options, get_pytest_option
@@ -42,6 +44,38 @@ def pytest_configure(config):
     # Retrieve with automatic type casting
     api_url = get_pytest_option(__package__, config, "api_url", type_hint=str)
 ```
+
+**For Plugin Users:**
+
+Once a plugin has registered options using this package, users can configure them in three ways (in order of precedence):
+
+1. **Command Line** (highest priority):
+   ```bash
+   pytest --api-url=https://prod.example.com
+   ```
+
+2. **INI Configuration** (medium priority):
+
+   In `pytest.ini`:
+   ```ini
+   [pytest]
+   api_url = https://staging.example.com
+   ```
+
+   Or in `pyproject.toml`:
+   ```toml
+   [tool.pytest.ini_options]
+   api_url = "https://staging.example.com"
+   ```
+
+3. **Runtime/Programmatic** (via conftest.py):
+   ```python
+   def pytest_configure(config):
+       # Override at runtime
+       config.option.api_url = "https://custom.example.com"
+   ```
+
+The value resolution follows this precedence chain, with each level overriding the next: Runtime > CLI > INI > Default.
 
 ### Artifact Directory Management
 
