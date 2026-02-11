@@ -21,7 +21,7 @@ uv add pytest-plugin-utils
 
 Register pytest options with automatic precedence handling (runtime > CLI > INI > defaults) and type inference.
 
-**For Plugin Authors:**
+#### For Plugin Authors
 
 ```python
 from pytest_plugin_utils import set_pytest_option, register_pytest_options, get_pytest_option
@@ -45,7 +45,7 @@ def pytest_configure(config):
     api_url = get_pytest_option(__package__, config, "api_url", type_hint=str)
 ```
 
-**For Plugin Users:**
+#### For Plugin Users
 
 Once a plugin has registered options using this package, users can configure them in three ways (in order of precedence):
 
