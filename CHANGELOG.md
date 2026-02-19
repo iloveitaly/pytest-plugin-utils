@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.1](https://github.com/iloveitaly/pytest-plugin-utils/compare/v0.1.0...v0.1.1) (2026-02-19)
+
+
+### Documentation
+
+* clarify option precedence for plugin users in README ([dd8ffc6](https://github.com/iloveitaly/pytest-plugin-utils/commit/dd8ffc614a9e6b331740516d5b1845fc4358dc83))
+* convert plugin author/user sections to subsections in README ([cae8141](https://github.com/iloveitaly/pytest-plugin-utils/commit/cae8141fd56105d9481b05dd0a1117534fee551e))
+
 ## 0.1.0 (2026-02-10)
 
 
