@@ -103,6 +103,13 @@ def pytest_runtest_setup(item):
 * Per-test artifact directory creation and resolution
 * Type-safe configuration retrieval with warnings on mismatches
 
+## Related Projects
+
+* [pytest-playwright-visual-snapshot](https://github.com/iloveitaly/pytest-playwright-visual-snapshot): Easy pytest visual regression testing using playwright.
+* [pytest-line-runner](https://github.com/iloveitaly/pytest-line-runner): Run pytest tests by line number instead of exact test name.
+* [pytest-celery-utils](https://github.com/iloveitaly/pytest-celery-utils): Pytest plugin for inspecting Celery task queues in Redis during tests.
+* [pytest-playwright-artifacts](https://github.com/iloveitaly/pytest-playwright-artifacts): Pytest plugin that captures HTML, screenshots, and console logs on Playwright test failures.
+
 ## [MIT License](LICENSE.md)
 
 ---
