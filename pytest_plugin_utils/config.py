@@ -10,11 +10,11 @@ import warnings
 from dataclasses import dataclass
 from pathlib import Path
 
-import structlog
+import logging
 from _pytest.config import Config
 from _pytest.config.argparsing import Parser
 
-log = structlog.get_logger(logger_name=__package__)
+log = logging.getLogger(__package__)
 
 
 @dataclass
@@ -150,7 +150,7 @@ def _smart_cast[T](value: t.Any, type_hint: type[T] | None) -> T | t.Any:
     This handles cases where CLI arguments (always strings) need conversion,
     or where default values might not match the strict type.
     """
-    log.debug("casting value", raw_value=value, target_type=type_hint)
+    log.debug("casting value raw_value=%s target_type=%s", value, type_hint)
 
     if type_hint is None:
         return value
@@ -173,14 +173,14 @@ def _smart_cast[T](value: t.Any, type_hint: type[T] | None) -> T | t.Any:
     # Casting logic for strings (from CLI or raw defaults)
     if type_hint is bool and isinstance(value, str):
         result = value.lower() in ("true", "1", "yes", "on")
-        log.debug("converted string to bool", converted_value=result)
+        log.debug("converted string to bool converted_value=%s", result)
         return result
 
     if origin is list and isinstance(value, str):
         # list("foo") produces ['f', 'o', 'o'], so handle string-to-list specially
         # by splitting on newlines (CLI args or raw strings from config)
         result = [v.strip() for v in value.splitlines() if v.strip()]
-        log.debug("converted string to list", converted_value=result)
+        log.debug("converted string to list converted_value=%s", result)
         return result
 
     # Generic fallback: call type_hint(value) as constructor
@@ -189,10 +189,10 @@ def _smart_cast[T](value: t.Any, type_hint: type[T] | None) -> T | t.Any:
             result = t.cast(type, origin)(value)
         else:
             result = t.cast(type, type_hint)(value)
-        log.debug("converted using type constructor", converted_value=result)
+        log.debug("converted using type constructor converted_value=%s", result)
         return result
     except (TypeError, ValueError) as e:
-        log.debug("failed to convert value", error=str(e))
+        log.debug("failed to convert value error=%s", str(e))
         raise TypeError(
             f"Cannot cast value of type {type(value)} to {type_hint}"
         ) from e
@@ -219,7 +219,7 @@ def get_pytest_option[T](
             The resolved value, optionally casted. Returns None if not found.
     """
     log.debug(
-        "getting pytest option", namespace=namespace, key=key, type_hint=type_hint
+        "getting pytest option namespace=%s key=%s type_hint=%s", namespace, key, type_hint
     )
 
     normalized_key = key.replace("-", "_")
@@ -261,7 +261,7 @@ def get_pytest_option[T](
             val = opt.default
             source = "default"
 
-    log.debug("resolved raw value", key=key, raw_value=val, source=source)
+    log.debug("resolved raw value key=%s raw_value=%s source=%s", key, val, source)
 
     # Determine effective type hint
     effective_type_hint = type_hint
@@ -272,16 +272,16 @@ def get_pytest_option[T](
     if val is not None and effective_type_hint is not None:
         try:
             result = _smart_cast(val, effective_type_hint)
-            log.debug("returning converted value", key=key, converted_value=result)
+            log.debug("returning converted value key=%s converted_value=%s", key, result)
             return result
         except TypeError as e:
             # warning? or just return val?
             # Let's log a warning and return val to be safe
             warnings.warn(f"Failed to cast option '{key}': {e}")
             log.debug(
-                "returning raw value after conversion failure", key=key, value=val
+                "returning raw value after conversion failure key=%s value=%s", key, val
             )
             return val
 
-    log.debug("returning raw value", key=key, value=val)
+    log.debug("returning raw value key=%s value=%s", key, val)
     return val
