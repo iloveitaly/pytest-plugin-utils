@@ -137,7 +137,9 @@ def register_pytest_options(namespace: str, parser: Parser) -> None:
             cli_name = f"--{opt.name.replace('_', '-')}"
             # CRITICAL: We set default=None here so CLI allows fallback to INI/Runtime
             if opt.type_hint is bool:
-                parser.addoption(cli_name, action="store_true", default=None, help=help_text)
+                parser.addoption(
+                    cli_name, action="store_true", default=None, help=help_text
+                )
             else:
                 parser.addoption(cli_name, action="store", default=None, help=help_text)
 
@@ -222,7 +224,10 @@ def get_pytest_option[T](
             The resolved value, optionally casted. Returns None if not found.
     """
     log.debug(
-        "getting pytest option namespace=%s key=%s type_hint=%s", namespace, key, type_hint
+        "getting pytest option namespace=%s key=%s type_hint=%s",
+        namespace,
+        key,
+        type_hint,
     )
 
     normalized_key = key.replace("-", "_")
@@ -275,7 +280,9 @@ def get_pytest_option[T](
     if val is not None and effective_type_hint is not None:
         try:
             result = _smart_cast(val, effective_type_hint)
-            log.debug("returning converted value key=%s converted_value=%s", key, result)
+            log.debug(
+                "returning converted value key=%s converted_value=%s", key, result
+            )
             return result
         except TypeError as e:
             # warning? or just return val?

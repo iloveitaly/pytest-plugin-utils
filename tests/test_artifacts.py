@@ -1,6 +1,5 @@
 """Tests for artifacts.py artifact directory handling."""
 
-from pathlib import Path
 from unittest.mock import Mock
 
 from pytest_plugin_utils.artifacts import (
@@ -12,8 +11,14 @@ from pytest_plugin_utils.artifacts import (
 def test_sanitize_for_artifacts():
     """Test various nodeid formats."""
     assert sanitize_for_artifacts("test_file.py::test_func") == "test-file-py-test-func"
-    assert sanitize_for_artifacts("test_file.py::test_func[param]") == "test-file-py-test-func-param"
-    assert sanitize_for_artifacts("folder/test_file.py::test_func") == "folder-test-file-py-test-func"
+    assert (
+        sanitize_for_artifacts("test_file.py::test_func[param]")
+        == "test-file-py-test-func-param"
+    )
+    assert (
+        sanitize_for_artifacts("folder/test_file.py::test_func")
+        == "folder-test-file-py-test-func"
+    )
     assert sanitize_for_artifacts("---test---") == "test"
     assert sanitize_for_artifacts("") == "unknown-test"
     assert sanitize_for_artifacts("!!!") == "unknown-test"
@@ -49,7 +54,7 @@ def test_get_artifact_dir_multiple_bases(tmp_path):
     """Verify we can get multiple artifact directories for the same test."""
     mock_item = Mock()
     mock_item.nodeid = "test_module.py::test_function"
-    
+
     snapshots_base = tmp_path / "snapshots"
     failures_base = tmp_path / "failures"
 
@@ -66,7 +71,7 @@ def test_get_artifact_dir_exists(tmp_path):
     mock_item = Mock()
     mock_item.nodeid = "test_module.py::test_function"
     output_dir = tmp_path / "test-output-exists"
-    
+
     # Create it beforehand
     final_dir = output_dir / "test-module-py-test-function"
     final_dir.mkdir(parents=True)
@@ -83,6 +88,6 @@ def test_get_artifact_dir_deep_nesting(tmp_path):
     output_dir = tmp_path / "nested"
 
     result = get_artifact_dir(mock_item, output_dir)
-    
+
     expected_name = "tests-sub-test-file-py-TestClass-test-method-param-path-val"
     assert result == output_dir / expected_name

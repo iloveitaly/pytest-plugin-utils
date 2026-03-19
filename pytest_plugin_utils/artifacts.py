@@ -36,7 +36,9 @@ def sanitize_for_artifacts(text: str) -> str:
     return sanitized or "unknown-test"
 
 
-def get_artifact_dir(item: pytest.Item, base_dir: Path, *, create: bool = False) -> Path:
+def get_artifact_dir(
+    item: pytest.Item, base_dir: Path, *, create: bool = False
+) -> Path:
     """
     Get or create the artifact directory for a specific test item.
 
