@@ -85,6 +85,27 @@ def test_register_pytest_options_cli_only():
         call_args = mock_parser.addoption.call_args
         assert call_args[0][0] == "--cli-option"
         assert "CLI only" in call_args[1]["help"]
+        assert call_args[1]["action"] == "store"
+
+
+def test_register_pytest_options_boolean():
+    mock_parser = Mock()
+    with patch("pytest_plugin_utils.config.REGISTRY", {}):
+        set_pytest_option(
+            "test_ns",
+            "bool_option",
+            help="Boolean option",
+            available="cli_option",
+            type_hint=bool,
+        )
+
+        register_pytest_options("test_ns", mock_parser)
+
+        mock_parser.addoption.assert_called_once()
+        mock_parser.addini.assert_not_called()
+        call_args = mock_parser.addoption.call_args
+        assert call_args[0][0] == "--bool-option"
+        assert call_args[1]["action"] == "store_true"
 
 
 def test_register_pytest_options_ini_only():

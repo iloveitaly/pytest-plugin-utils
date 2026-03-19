@@ -136,7 +136,10 @@ def register_pytest_options(namespace: str, parser: Parser) -> None:
         if opt.available in ("all", "cli_option"):
             cli_name = f"--{opt.name.replace('_', '-')}"
             # CRITICAL: We set default=None here so CLI allows fallback to INI/Runtime
-            parser.addoption(cli_name, action="store", default=None, help=help_text)
+            if opt.type_hint is bool:
+                parser.addoption(cli_name, action="store_true", default=None, help=help_text)
+            else:
+                parser.addoption(cli_name, action="store", default=None, help=help_text)
 
         # INI Registration
         if opt.available in ("all", "ini"):
