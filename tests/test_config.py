@@ -338,3 +338,29 @@ def test_namespace_isolation():
 
         assert result_a == "value_a"
         assert result_b == "value_b"
+
+
+def test_get_pytest_option_with_type_hint_conversion():
+    """Test that type hint conversion works as expected."""
+    mock_config = Mock()
+    mock_config.option.test_key = "123"
+
+    with patch("pytest_plugin_utils.config.REGISTRY", {}):
+        set_pytest_option("test_ns", "test_key", type_hint=int)
+        result = get_pytest_option("test_ns", mock_config, "test_key", type_hint=int)
+
+        assert result == 123
+        assert isinstance(result, int)
+
+
+def test_get_pytest_option_no_type_hint():
+    """Test that get_pytest_option returns the raw value when no type_hint is provided."""
+    mock_config = Mock()
+    mock_config.option.test_key = "raw_value"
+
+    with patch("pytest_plugin_utils.config.REGISTRY", {}):
+        set_pytest_option("test_ns", "test_key")
+        result = get_pytest_option("test_ns", mock_config, "test_key")
+
+        assert result == "raw_value"
+        assert isinstance(result, str)

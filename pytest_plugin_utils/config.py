@@ -203,9 +203,21 @@ def _smart_cast[T](value: t.Any, type_hint: type[T] | None) -> T | t.Any:
         ) from e
 
 
+@t.overload
 def get_pytest_option[T](
-    namespace: str, config: Config, key: str, *, type_hint: type[T] | None = None
-) -> T | t.Any | None:
+    namespace: str, config: Config, key: str, *, type_hint: type[T]
+) -> T | None: ...
+
+
+@t.overload
+def get_pytest_option(
+    namespace: str, config: Config, key: str, *, type_hint: None = None
+) -> t.Any | None: ...
+
+
+def get_pytest_option(
+    namespace: str, config: Config, key: str, *, type_hint: t.Any | None = None
+) -> t.Any | None:
     """
     Retrieve a configuration value from runtime overrides, CLI, or INI files.
 
