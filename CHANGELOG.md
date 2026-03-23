@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/iloveitaly/pytest-plugin-utils/compare/v0.1.1...v0.2.0) (2026-03-23)
+
+
+### Features
+
+* **config:** add overload signatures for get_pytest_option ([e3b486d](https://github.com/iloveitaly/pytest-plugin-utils/commit/e3b486d2ef6c81ddaef3276c0fcce01c0b8fee77))
+
 ## [0.1.1](https://github.com/iloveitaly/pytest-plugin-utils/compare/v0.1.0...v0.1.1) (2026-03-19)
 
 
