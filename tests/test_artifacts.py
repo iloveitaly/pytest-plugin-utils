@@ -10,18 +10,34 @@ from pytest_plugin_utils.artifacts import (
 
 def test_sanitize_for_artifacts():
     """Test various nodeid formats."""
-    assert sanitize_for_artifacts("test_file.py::test_func") == "test-file-py-test-func"
+    # Basic file and function
+    assert sanitize_for_artifacts("test_file.py::test_func") == "file-func"
     assert (
         sanitize_for_artifacts("test_file.py::test_func[param]")
-        == "test-file-py-test-func-param"
+        == "file-func-param"
     )
+    # Folder and test_ prefix
     assert (
         sanitize_for_artifacts("folder/test_file.py::test_func")
-        == "folder-test-file-py-test-func"
+        == "folder-file-func"
     )
+    # The specific case requested: tests/ prefix, _test suffix, and test_ prefix
+    assert (
+        sanitize_for_artifacts("tests/integration/user_creation_test.py::test_signin")
+        == "integration-user-creation-signin"
+    )
+    # Deeply nested with mixed prefixes/suffixes
+    assert (
+        sanitize_for_artifacts("tests/unit/utils/test_helpers.py::test_utility_function")
+        == "unit-utils-helpers-utility-function"
+    )
+    # Edge cases
     assert sanitize_for_artifacts("---test---") == "test"
     assert sanitize_for_artifacts("") == "unknown-test"
     assert sanitize_for_artifacts("!!!") == "unknown-test"
+    # Ensure it doesn't over-strip in the middle of words
+    assert sanitize_for_artifacts("attest_file.py::test_func") == "attest-file-func"
+    assert sanitize_for_artifacts("my_test_case.py::func") == "my-test-case-func"
 
 
 def test_get_artifact_dir(tmp_path):
@@ -31,7 +47,7 @@ def test_get_artifact_dir(tmp_path):
 
     result = get_artifact_dir(mock_item, output_dir)
 
-    expected = output_dir / "test-module-py-test-function"
+    expected = output_dir / "module-function"
     assert result == expected
     assert not result.exists()
     assert not output_dir.exists()
@@ -44,7 +60,7 @@ def test_get_artifact_dir_create(tmp_path):
 
     result = get_artifact_dir(mock_item, output_dir, create=True)
 
-    expected = output_dir / "test-module-py-test-function"
+    expected = output_dir / "module-function"
     assert result == expected
     assert result.exists()
     assert output_dir.exists()
@@ -61,8 +77,8 @@ def test_get_artifact_dir_multiple_bases(tmp_path):
     snap_dir = get_artifact_dir(mock_item, snapshots_base)
     fail_dir = get_artifact_dir(mock_item, failures_base)
 
-    assert snap_dir == snapshots_base / "test-module-py-test-function"
-    assert fail_dir == failures_base / "test-module-py-test-function"
+    assert snap_dir == snapshots_base / "module-function"
+    assert fail_dir == failures_base / "module-function"
     assert snap_dir != fail_dir
 
 
@@ -73,7 +89,7 @@ def test_get_artifact_dir_exists(tmp_path):
     output_dir = tmp_path / "test-output-exists"
 
     # Create it beforehand
-    final_dir = output_dir / "test-module-py-test-function"
+    final_dir = output_dir / "module-function"
     final_dir.mkdir(parents=True)
 
     # Should not raise
@@ -89,5 +105,5 @@ def test_get_artifact_dir_deep_nesting(tmp_path):
 
     result = get_artifact_dir(mock_item, output_dir)
 
-    expected_name = "tests-sub-test-file-py-TestClass-test-method-param-path-val"
+    expected_name = "sub-file-TestClass-method-param-path-val"
     assert result == output_dir / expected_name

@@ -16,14 +16,13 @@ def sanitize_for_artifacts(text: str) -> str:
     """
     Sanitize a test nodeid or name for use as a directory name.
 
-    This function replaces characters that are not alphanumeric or hyphens
-    with a single hyphen, and removes leading/trailing hyphens. This ensures
-    that the resulting string is safe to use as a directory name on most
-    file systems.
+    This function removes redundant prefixes and extensions (.py, test_, _test, tests/)
+    and replaces characters that are not alphanumeric or hyphens with a
+    single hyphen.
 
     Example:
-        >>> sanitize_for_artifacts("test_file.py::test_func[param]")
-        'test-file-py-test-func-param'
+        >>> sanitize_for_artifacts("tests/integration/user_creation_test.py::test_signin")
+        'integration-user-creation-signin'
 
     Args:
         text: The text to sanitize (e.g., a test nodeid).
@@ -31,6 +30,18 @@ def sanitize_for_artifacts(text: str) -> str:
     Returns:
         A sanitized string safe for use as a directory name.
     """
+    # Remove .py extension (before :: or at end of string)
+    text = re.sub(r"\.py(::|$)", r"\1", text)
+
+    # Remove leading "tests/" if present
+    text = re.sub(r"^tests/", "", text)
+
+    # Remove test_ prefix from any segment (separated by / or ::)
+    text = re.sub(r"(^|[/:]+)test_", r"\1", text)
+
+    # Remove _test suffix from any segment
+    text = re.sub(r"_test([/:]+|$)", r"\1", text)
+
     sanitized = re.sub(r"[^A-Za-z0-9]+", "-", text)
     sanitized = re.sub(r"-+", "-", sanitized).strip("-")
     return sanitized or "unknown-test"
