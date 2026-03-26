@@ -38,6 +38,16 @@ def test_sanitize_for_artifacts():
     # Ensure it doesn't over-strip in the middle of words
     assert sanitize_for_artifacts("attest_file.py::test_func") == "attest-file-func"
     assert sanitize_for_artifacts("my_test_case.py::func") == "my-test-case-func"
+    # Ensure it handles ./ prefix
+    assert (
+        sanitize_for_artifacts("./tests/integration/user_creation_test.py::test_signin")
+        == "integration-user-creation-signin"
+    )
+    # Ensure it handles absolute paths
+    assert (
+        sanitize_for_artifacts("/Users/mike/Projects/python/tests/integration/user_creation_test.py::test_signin")
+        == "integration-user-creation-signin"
+    )
 
 
 def test_get_artifact_dir(tmp_path):
@@ -45,12 +55,36 @@ def test_get_artifact_dir(tmp_path):
     mock_item.nodeid = "test_module.py::test_function"
     output_dir = tmp_path / "test-output"
 
+    # Default is now strip_base_dir=True, but here there's no overlap
     result = get_artifact_dir(mock_item, output_dir)
 
     expected = output_dir / "module-function"
     assert result == expected
     assert not result.exists()
     assert not output_dir.exists()
+
+
+def test_get_artifact_dir_no_strip(tmp_path):
+    """Verify we can explicitly disable stripping."""
+    mock_item = Mock()
+    mock_item.nodeid = "tests/integration/user_creation_test.py::test_signin"
+    base_dir = tmp_path / "tests" / "integration" / "snapshots"
+
+    result = get_artifact_dir(mock_item, base_dir, strip_base_dir=False)
+    assert result == base_dir / "integration-user-creation-signin"
+
+
+def test_get_artifact_dir_strips_by_default(tmp_path):
+    """Verify that strip_base_dir=True is now the default."""
+    mock_item = Mock()
+    mock_item.nodeid = "tests/integration/test_file.py::test_func"
+    base_dir = tmp_path / "tests" / "integration" / "snapshots"
+
+    # We do NOT pass strip_base_dir=True here; it should happen automatically
+    result = get_artifact_dir(mock_item, base_dir)
+
+    # If it didn't strip, it would be base_dir / "integration-file-func"
+    assert result == base_dir / "file-func"
 
 
 def test_get_artifact_dir_create(tmp_path):
@@ -125,3 +159,8 @@ def test_get_artifact_dir_strip_base_dir(tmp_path):
     # With strip_base_dir, both "tests" and "integration" are stripped because they are in base_dir
     result_strip = get_artifact_dir(mock_item, base_dir, strip_base_dir=True)
     assert result_strip == base_dir / "user-creation-signin"
+
+    # With ./ prefix and strip_base_dir
+    mock_item.nodeid = "./tests/integration/user_creation_test.py::test_signin"
+    result_dot_strip = get_artifact_dir(mock_item, base_dir, strip_base_dir=True)
+    assert result_dot_strip == base_dir / "user-creation-signin"

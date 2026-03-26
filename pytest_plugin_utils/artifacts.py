@@ -31,18 +31,28 @@ def sanitize_for_artifacts(text: str) -> str:
         A sanitized string safe for use as a directory name.
     """
     # Pytest nodeids often include the file extension. Strip `.py` to clean up the artifact name.
+    # test_file.py::test_func => test_file::test_func
     text = re.sub(r"\.py(::|$)", r"\1", text)
 
+    # If it's an absolute path, try to find 'tests/' and strip everything before it.
+    # /Users/mike/tests/integration/file.py => tests/integration/file.py
+    if text.startswith("/"):
+        text = re.sub(r"^.*/tests/", "tests/", text)
+
     # `tests/` is a common top-level directory in python projects, adding noise to the artifact path.
-    text = re.sub(r"^tests/", "", text)
+    # tests/integration/file.py => integration/file.py
+    text = re.sub(r"^(\./)?tests/", "", text)
 
     # Pytest requires tests to be prefixed with `test_`, making it redundant in artifact names.
+    # integration/test_file::test_func => integration/file::func
     text = re.sub(r"(^|[/:]+)test_", r"\1", text)
 
     # Likewise, file names often use the `_test` suffix convention.
+    # integration/user_test::func => integration/user::func
     text = re.sub(r"_test([/:]+|$)", r"\1", text)
 
     # Normalize remaining non-alphanumeric characters (like `::` and `/`) into hyphens for FS compatibility.
+    # integration/file::func => integration-file-func
     sanitized = re.sub(r"[^A-Za-z0-9]+", "-", text)
     sanitized = re.sub(r"-+", "-", sanitized).strip("-")
     
@@ -50,7 +60,7 @@ def sanitize_for_artifacts(text: str) -> str:
 
 
 def get_artifact_dir(
-    item: pytest.Item, base_dir: Path, *, create: bool = False, strip_base_dir: bool = False
+    item: pytest.Item, base_dir: Path, *, create: bool = False, strip_base_dir: bool = True
 ) -> Path:
     """
     Get or create the artifact directory for a specific test item.
@@ -71,7 +81,7 @@ def get_artifact_dir(
         base_dir.mkdir(parents=True, exist_ok=True)
 
     # nodeid is the unique identifier for a pytest test, e.g. "path/to/test.py::test_func"
-    nodeid = item.nodeid
+    nodeid = re.sub(r"^\./", "", item.nodeid)
 
     if strip_base_dir:
         # Extract just the file path portion of the nodeid before the "::" test separator
@@ -84,6 +94,9 @@ def get_artifact_dir(
         # Iterate through the test's directory structure and strip any segments that exist in the base directory
         # This prevents redundant nesting when base_dir is already inside the test directory tree
         for part in node_dir_parts:
+            if part == ".":
+                continue
+
             if part in base_parts_set:
                 if nodeid.startswith(part + "/"):
                     nodeid = nodeid[len(part) + 1:]
