@@ -45,6 +45,43 @@ def pytest_configure(config):
     api_url = get_pytest_option(__package__, config, "api_url", type_hint=str)
 ```
 
+#### The `available` Parameter
+
+The `available` argument in `set_pytest_option` controls how the option is exposed to the user:
+
+| Value | Exposure | Description |
+| :--- | :--- | :--- |
+| `"all"` | CLI & INI | Adds a `--flag` and an INI entry. |
+| `"cli_option"` | CLI Only | Adds a `--flag` but no INI entry. |
+| `"ini"` | INI Only | Adds an INI entry but no CLI flag. |
+| `None` | Runtime Only | Purely programmatic. No CLI or INI exposure. |
+
+#### Advanced: Handling Complex Types (Dictionaries)
+
+For rich data structures like dictionaries that are difficult to express as strings on the command line, use `available=None`. This allows you to pass Python objects directly via hooks.
+
+**Plugin Author:**
+```python
+set_pytest_option(
+    __package__,
+    "playwright_kwargs",
+    default={},
+    available=None,  # Runtime only
+    type_hint=dict,
+)
+```
+
+**Plugin User (in `conftest.py`):**
+```python
+def pytest_configure(config):
+    # Set the dictionary directly on the config object
+    config.option.playwright_kwargs = {
+        "timeout": 5000,
+        "full_page": True,
+        "clip": {"x": 0, "y": 0, "width": 800, "height": 600}
+    }
+```
+
 #### For Plugin Users
 
 Once a plugin has registered options using this package, users can configure them in three ways (in order of precedence):
