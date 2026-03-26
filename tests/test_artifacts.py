@@ -107,3 +107,21 @@ def test_get_artifact_dir_deep_nesting(tmp_path):
 
     expected_name = "sub-file-TestClass-method-param-path-val"
     assert result == output_dir / expected_name
+
+
+def test_get_artifact_dir_strip_base_dir(tmp_path):
+    """Verify that strip_base_dir removes overlapping parent directories."""
+    mock_item = Mock()
+    mock_item.nodeid = "tests/integration/user_creation_test.py::test_signin"
+    
+    # Simulate a base_dir that has overlapping folders with the nodeid
+    base_dir = tmp_path / "tests" / "integration" / "snapshots"
+    
+    # Without strip_base_dir (default), "tests/" is stripped by sanitize_for_artifacts unconditionally,
+    # but "integration" remains.
+    result_no_strip = get_artifact_dir(mock_item, base_dir, strip_base_dir=False)
+    assert result_no_strip == base_dir / "integration-user-creation-signin"
+    
+    # With strip_base_dir, both "tests" and "integration" are stripped because they are in base_dir
+    result_strip = get_artifact_dir(mock_item, base_dir, strip_base_dir=True)
+    assert result_strip == base_dir / "user-creation-signin"

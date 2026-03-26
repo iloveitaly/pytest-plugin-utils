@@ -30,25 +30,27 @@ def sanitize_for_artifacts(text: str) -> str:
     Returns:
         A sanitized string safe for use as a directory name.
     """
-    # Remove .py extension (before :: or at end of string)
+    # Pytest nodeids often include the file extension. Strip `.py` to clean up the artifact name.
     text = re.sub(r"\.py(::|$)", r"\1", text)
 
-    # Remove leading "tests/" if present
+    # `tests/` is a common top-level directory in python projects, adding noise to the artifact path.
     text = re.sub(r"^tests/", "", text)
 
-    # Remove test_ prefix from any segment (separated by / or ::)
+    # Pytest requires tests to be prefixed with `test_`, making it redundant in artifact names.
     text = re.sub(r"(^|[/:]+)test_", r"\1", text)
 
-    # Remove _test suffix from any segment
+    # Likewise, file names often use the `_test` suffix convention.
     text = re.sub(r"_test([/:]+|$)", r"\1", text)
 
+    # Normalize remaining non-alphanumeric characters (like `::` and `/`) into hyphens for FS compatibility.
     sanitized = re.sub(r"[^A-Za-z0-9]+", "-", text)
     sanitized = re.sub(r"-+", "-", sanitized).strip("-")
+    
     return sanitized or "unknown-test"
 
 
 def get_artifact_dir(
-    item: pytest.Item, base_dir: Path, *, create: bool = False
+    item: pytest.Item, base_dir: Path, *, create: bool = False, strip_base_dir: bool = False
 ) -> Path:
     """
     Get or create the artifact directory for a specific test item.
@@ -60,6 +62,7 @@ def get_artifact_dir(
         item: The pytest.Item (test case) for which to get the directory.
         base_dir: The root output directory for artifacts.
         create: If True, creates the artifact directory and its parents if they do not exist.
+        strip_base_dir: If True, strips any parent directories from the nodeid that are already part of the base_dir path.
 
     Returns:
         A pathlib.Path object pointing to the specific test's artifact directory.
@@ -67,7 +70,28 @@ def get_artifact_dir(
     if create:
         base_dir.mkdir(parents=True, exist_ok=True)
 
-    per_test_dir = base_dir / sanitize_for_artifacts(item.nodeid)
+    # nodeid is the unique identifier for a pytest test, e.g. "path/to/test.py::test_func"
+    nodeid = item.nodeid
+
+    if strip_base_dir:
+        # Extract just the file path portion of the nodeid before the "::" test separator
+        node_file = nodeid.split("::")[0]
+        node_dir_parts = Path(node_file).parent.parts
+        
+        # Compare against absolute path parts to ensure reliable overlap detection
+        base_parts_set = set(base_dir.resolve().parts)
+
+        # Iterate through the test's directory structure and strip any segments that exist in the base directory
+        # This prevents redundant nesting when base_dir is already inside the test directory tree
+        for part in node_dir_parts:
+            if part in base_parts_set:
+                if nodeid.startswith(part + "/"):
+                    nodeid = nodeid[len(part) + 1:]
+            else:
+                # Stop stripping once we hit a directory that isn't shared with the base output directory
+                break
+
+    per_test_dir = base_dir / sanitize_for_artifacts(nodeid)
 
     if create:
         per_test_dir.mkdir(parents=True, exist_ok=True)
