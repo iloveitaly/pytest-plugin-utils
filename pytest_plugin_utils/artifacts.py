@@ -55,12 +55,16 @@ def sanitize_for_artifacts(text: str) -> str:
     # integration/file::func => integration-file-func
     sanitized = re.sub(r"[^A-Za-z0-9]+", "-", text)
     sanitized = re.sub(r"-+", "-", sanitized).strip("-")
-    
+
     return sanitized or "unknown-test"
 
 
 def get_artifact_dir(
-    item: pytest.Item, base_dir: Path, *, create: bool = False, strip_base_dir: bool = True
+    item: pytest.Item,
+    base_dir: Path,
+    *,
+    create: bool = False,
+    strip_base_dir: bool = True,
 ) -> Path:
     """
     Get or create the artifact directory for a specific test item.
@@ -87,7 +91,7 @@ def get_artifact_dir(
         # Extract just the file path portion of the nodeid before the "::" test separator
         node_file = nodeid.split("::")[0]
         node_dir_parts = Path(node_file).parent.parts
-        
+
         # Compare against absolute path parts to ensure reliable overlap detection
         base_parts_set = set(base_dir.resolve().parts)
 
@@ -99,7 +103,7 @@ def get_artifact_dir(
 
             if part in base_parts_set:
                 if nodeid.startswith(part + "/"):
-                    nodeid = nodeid[len(part) + 1:]
+                    nodeid = nodeid[len(part) + 1 :]
             else:
                 # Stop stripping once we hit a directory that isn't shared with the base output directory
                 break

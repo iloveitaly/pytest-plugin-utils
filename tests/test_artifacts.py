@@ -12,14 +12,10 @@ def test_sanitize_for_artifacts():
     """Test various nodeid formats."""
     # Basic file and function
     assert sanitize_for_artifacts("test_file.py::test_func") == "file-func"
-    assert (
-        sanitize_for_artifacts("test_file.py::test_func[param]")
-        == "file-func-param"
-    )
+    assert sanitize_for_artifacts("test_file.py::test_func[param]") == "file-func-param"
     # Folder and test_ prefix
     assert (
-        sanitize_for_artifacts("folder/test_file.py::test_func")
-        == "folder-file-func"
+        sanitize_for_artifacts("folder/test_file.py::test_func") == "folder-file-func"
     )
     # The specific case requested: tests/ prefix, _test suffix, and test_ prefix
     assert (
@@ -28,7 +24,9 @@ def test_sanitize_for_artifacts():
     )
     # Deeply nested with mixed prefixes/suffixes
     assert (
-        sanitize_for_artifacts("tests/unit/utils/test_helpers.py::test_utility_function")
+        sanitize_for_artifacts(
+            "tests/unit/utils/test_helpers.py::test_utility_function"
+        )
         == "unit-utils-helpers-utility-function"
     )
     # Edge cases
@@ -45,7 +43,9 @@ def test_sanitize_for_artifacts():
     )
     # Ensure it handles absolute paths
     assert (
-        sanitize_for_artifacts("/Users/mike/Projects/python/tests/integration/user_creation_test.py::test_signin")
+        sanitize_for_artifacts(
+            "/Users/mike/Projects/python/tests/integration/user_creation_test.py::test_signin"
+        )
         == "integration-user-creation-signin"
     )
 
@@ -147,15 +147,15 @@ def test_get_artifact_dir_strip_base_dir(tmp_path):
     """Verify that strip_base_dir removes overlapping parent directories."""
     mock_item = Mock()
     mock_item.nodeid = "tests/integration/user_creation_test.py::test_signin"
-    
+
     # Simulate a base_dir that has overlapping folders with the nodeid
     base_dir = tmp_path / "tests" / "integration" / "snapshots"
-    
+
     # Without strip_base_dir (default), "tests/" is stripped by sanitize_for_artifacts unconditionally,
     # but "integration" remains.
     result_no_strip = get_artifact_dir(mock_item, base_dir, strip_base_dir=False)
     assert result_no_strip == base_dir / "integration-user-creation-signin"
-    
+
     # With strip_base_dir, both "tests" and "integration" are stripped because they are in base_dir
     result_strip = get_artifact_dir(mock_item, base_dir, strip_base_dir=True)
     assert result_strip == base_dir / "user-creation-signin"
