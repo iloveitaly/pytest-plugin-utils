@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.0](https://github.com/iloveitaly/pytest-plugin-utils/compare/v0.2.0...v0.3.0) (2026-03-26)
+
+
+### Features
+
+* **artifacts:** add optional base directory stripping to nodeid paths ([67e4d66](https://github.com/iloveitaly/pytest-plugin-utils/commit/67e4d666aefe20b15427a7855f53e657d96b0966))
+
+
+### Bug Fixes
+
+* improve artifact directory name sanitization ([f7e8670](https://github.com/iloveitaly/pytest-plugin-utils/commit/f7e86700b7682b31fe7981e5422baf86de1304c2))
+
+
+### Documentation
+
+* add documentation for complex type handling ([b60553d](https://github.com/iloveitaly/pytest-plugin-utils/commit/b60553d8b28cff839f295830dd68a080c1468aa5))
+
 ## [0.2.0](https://github.com/iloveitaly/pytest-plugin-utils/compare/v0.1.1...v0.2.0) (2026-03-23)
 
 
