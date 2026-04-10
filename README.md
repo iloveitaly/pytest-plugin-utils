@@ -45,6 +45,10 @@ def pytest_configure(config):
     api_url = get_pytest_option(__package__, config, "api_url", type_hint=str)
 ```
 
+`namespace` is only used internally by this library to scope its option registry.
+It does not prefix pytest's CLI flags, `config.option` attributes, or INI keys.
+If you register `"api_url"`, the runtime override is `config.option.api_url`, not a namespaced variant like `config.option.my_plugin_api_url`.
+
 #### The `available` Parameter
 
 The `available` argument in `set_pytest_option` controls how the option is exposed to the user:
@@ -74,7 +78,7 @@ set_pytest_option(
 **Plugin User (in `conftest.py`):**
 ```python
 def pytest_configure(config):
-    # Set the dictionary directly on the config object
+    # Set the dictionary directly on the raw option name
     config.option.playwright_kwargs = {
         "timeout": 5000,
         "full_page": True,
@@ -108,9 +112,11 @@ Once a plugin has registered options using this package, users can configure the
 3. **Runtime/Programmatic** (via conftest.py):
    ```python
    def pytest_configure(config):
-       # Override at runtime
+       # Override at runtime using the raw option name
        config.option.api_url = "https://custom.example.com"
    ```
+
+   `namespace` does not change the attribute name here. For example, `get_pytest_option(__package__, config, "api_url")` reads from `config.option.api_url`.
 
 The value resolution follows this precedence chain, with each level overriding the next: Runtime > CLI > INI > Default.
 
