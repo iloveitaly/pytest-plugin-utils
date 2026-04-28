@@ -1,6 +1,6 @@
 [project]
 name = "pytest-plugin-utils"
-version = "0.3.0"
+version = "0.3.1"
 description = "Reusable configuration and artifact utilities for building pytest plugins"
 keywords = ["pytest", "plugin", "testing", "utilities"]
 readme = "README.md"
