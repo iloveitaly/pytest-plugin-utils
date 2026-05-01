@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0](https://github.com/iloveitaly/pytest-plugin-utils/compare/v0.3.0...v0.4.0) (2026-05-01)
+
+
+### Features
+
+* group pytest options by namespace ([1e922da](https://github.com/iloveitaly/pytest-plugin-utils/commit/1e922da17ace7f04f99b491c750857a1ce87ff13))
+
+
+### Documentation
+
+* clarify namespace usage and option attribute access ([d495388](https://github.com/iloveitaly/pytest-plugin-utils/commit/d495388c1257002065ae0510a85685e2a98255e1))
+* update documentation for register_pytest_options ([e2e75d3](https://github.com/iloveitaly/pytest-plugin-utils/commit/e2e75d366c03eff288e6be2fa4200fcaee6e545e))
+
 ## [0.3.0](https://github.com/iloveitaly/pytest-plugin-utils/compare/v0.2.0...v0.3.0) (2026-03-26)
 
 
