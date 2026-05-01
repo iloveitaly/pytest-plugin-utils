@@ -127,6 +127,8 @@ def register_pytest_options(namespace: str, parser: Parser) -> None:
         namespace: Unique namespace for this plugin (typically __package__).
         parser: The pytest parser to register options with.
     """
+    group = parser.getgroup(namespace)
+
     for opt in REGISTRY.get(namespace, []):
         help_text = opt.help_text
         if opt.default is not None:
@@ -137,11 +139,11 @@ def register_pytest_options(namespace: str, parser: Parser) -> None:
             cli_name = f"--{opt.name.replace('_', '-')}"
             # CRITICAL: We set default=None here so CLI allows fallback to INI/Runtime
             if opt.type_hint is bool:
-                parser.addoption(
+                group.addoption(
                     cli_name, action="store_true", default=None, help=help_text
                 )
             else:
-                parser.addoption(cli_name, action="store", default=None, help=help_text)
+                group.addoption(cli_name, action="store", default=None, help=help_text)
 
         # INI Registration
         if opt.available in ("all", "ini"):

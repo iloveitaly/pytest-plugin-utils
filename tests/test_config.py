@@ -80,9 +80,10 @@ def test_register_pytest_options_cli_only():
 
         register_pytest_options("test_ns", mock_parser)
 
-        mock_parser.addoption.assert_called_once()
+        mock_parser.getgroup.assert_called_once_with("test_ns")
+        mock_parser.getgroup.return_value.addoption.assert_called_once()
         mock_parser.addini.assert_not_called()
-        call_args = mock_parser.addoption.call_args
+        call_args = mock_parser.getgroup.return_value.addoption.call_args
         assert call_args[0][0] == "--cli-option"
         assert "CLI only" in call_args[1]["help"]
         assert call_args[1]["action"] == "store"
@@ -101,9 +102,10 @@ def test_register_pytest_options_boolean():
 
         register_pytest_options("test_ns", mock_parser)
 
-        mock_parser.addoption.assert_called_once()
+        mock_parser.getgroup.assert_called_once_with("test_ns")
+        mock_parser.getgroup.return_value.addoption.assert_called_once()
         mock_parser.addini.assert_not_called()
-        call_args = mock_parser.addoption.call_args
+        call_args = mock_parser.getgroup.return_value.addoption.call_args
         assert call_args[0][0] == "--bool-option"
         assert call_args[1]["action"] == "store_true"
 
@@ -133,7 +135,7 @@ def test_register_pytest_options_all():
 
         register_pytest_options("test_ns", mock_parser)
 
-        mock_parser.addoption.assert_called_once()
+        mock_parser.getgroup.return_value.addoption.assert_called_once()
         mock_parser.addini.assert_called_once()
 
 
@@ -150,7 +152,7 @@ def test_register_pytest_options_appends_default_to_help():
 
         register_pytest_options("test_ns", mock_parser)
 
-        call_args = mock_parser.addoption.call_args
+        call_args = mock_parser.getgroup.return_value.addoption.call_args
         assert "Help text (default: my_default)" in call_args[1]["help"]
 
 
