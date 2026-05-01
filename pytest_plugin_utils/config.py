@@ -123,6 +123,18 @@ def register_pytest_options(namespace: str, parser: Parser) -> None:
     """
     Must be called within `pytest_addoption` to register CLI/INI flags.
 
+    CLI options are grouped under a section named after `namespace` in
+    `pytest --help`. Group description and ordering are not configurable
+    here — call `parser.getgroup` yourself *before* this function if you
+    need them:
+
+        def pytest_addoption(parser):
+            parser.getgroup("my_plugin", description="My plugin options", after="general")
+            register_pytest_options("my_plugin", parser)
+
+    Because pytest returns the existing group on subsequent `getgroup` calls
+    with the same name, the description and ordering you set will be preserved.
+
     Args:
         namespace: Unique namespace for this plugin (typically __package__).
         parser: The pytest parser to register options with.
