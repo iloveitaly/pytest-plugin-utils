@@ -5,12 +5,12 @@ Options are registered once, then resolved at read time with a consistent
 precedence: runtime overrides > INI > defaults from the registry.
 """
 
+import logging
 import typing as t
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
 
-import logging
 from _pytest.config import Config
 from _pytest.config.argparsing import Parser
 
@@ -26,7 +26,7 @@ class OptionDef:
     name: str
     default: t.Any
     help_text: str
-    available: t.Literal["all", "ini", "cli_option", None]
+    available: t.Literal["all", "ini", "cli_option"] | None
     type_hint: t.Any | None
     ini_type: (
         t.Literal[
@@ -82,7 +82,7 @@ def set_pytest_option(
     *,
     default: t.Any = None,
     help: str = "",
-    available: t.Literal["all", "ini", "cli_option", None] = None,
+    available: t.Literal["all", "ini", "cli_option"] | None = None,
     type_hint: t.Any | None = None,
 ) -> None:
     """
@@ -267,11 +267,15 @@ def get_pytest_option(
     )
 
     # Validation
-    if type_hint is not None and opt is not None and opt.type_hint is not None:
-        if type_hint != opt.type_hint:
-            warnings.warn(
-                f"Type mismatch for option '{key}': requested {type_hint}, configured {opt.type_hint}"
-            )
+    if (
+        type_hint is not None
+        and opt is not None
+        and opt.type_hint is not None
+        and type_hint != opt.type_hint
+    ):
+        warnings.warn(
+            f"Type mismatch for option '{key}': requested {type_hint}, configured {opt.type_hint}"
+        )
 
     # CLI/runtime value from config.option (argparse Namespace)
     val = getattr(config.option, normalized_key, None)
@@ -289,11 +293,10 @@ def get_pytest_option(
     else:
         source = "cli"
 
-    if val in (None, ""):
+    if val in (None, "") and opt is not None:
         # Default value from the registry
-        if opt is not None:
-            val = opt.default
-            source = "default"
+        val = opt.default
+        source = "default"
 
     log.debug("resolved raw value key=%s raw_value=%s source=%s", key, val, source)
 
