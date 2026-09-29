@@ -1,8 +1,9 @@
 import typing as t
-from _pytest.config import Config
-from pytest_plugin_utils.config import get_pytest_option
-
 from unittest.mock import Mock
+
+from _pytest.config import Config
+
+from pytest_plugin_utils.config import get_pytest_option
 
 
 def test_get_pytest_option_typing():

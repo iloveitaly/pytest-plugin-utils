@@ -24,7 +24,12 @@ Register pytest options with automatic precedence handling (runtime > CLI > INI 
 #### For Plugin Authors
 
 ```python
-from pytest_plugin_utils import set_pytest_option, register_pytest_options, get_pytest_option
+from pytest_plugin_utils import (
+    set_pytest_option,
+    register_pytest_options,
+    get_pytest_option,
+)
+
 
 def pytest_addoption(parser):
     # Define your options (use __package__ for namespace)
@@ -39,6 +44,7 @@ def pytest_addoption(parser):
 
     # Register them with pytest
     register_pytest_options(__package__, parser)
+
 
 def pytest_configure(config):
     # Retrieve with automatic type casting
@@ -82,7 +88,7 @@ def pytest_configure(config):
     config.option.playwright_kwargs = {
         "timeout": 5000,
         "full_page": True,
-        "clip": {"x": 0, "y": 0, "width": 800, "height": 600}
+        "clip": {"x": 0, "y": 0, "width": 800, "height": 600},
     }
 ```
 
@@ -127,9 +133,11 @@ Create per-test artifact directories with sanitized names:
 ```python
 from pytest_plugin_utils import set_artifact_dir_option, get_artifact_dir
 
+
 def pytest_configure(config):
     # Configure which option name to use (use __package__ for namespace)
     set_artifact_dir_option(__package__, "my_plugin_output")
+
 
 def pytest_runtest_setup(item):
     # Get a clean directory for this specific test
